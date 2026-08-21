@@ -26,9 +26,14 @@ export function ScanStarter({ initialPlotId }: { initialPlotId?: string }) {
   const onCapture = (angle: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
     const file = e.target.files[0];
-    const url = URL.createObjectURL(file);
-    setCustomImagePreview(url);
-    setCaptured((prev) => (prev.includes(angle) ? prev : [...prev, angle]));
+    
+    // Convert to base64 for API
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCustomImagePreview(reader.result as string);
+      setCaptured((prev) => (prev.includes(angle) ? prev : [...prev, angle]));
+    };
+    reader.readAsDataURL(file);
   };
 
   const selectPresetCase = (presetId: string) => {
@@ -36,19 +41,44 @@ export function ScanStarter({ initialPlotId }: { initialPlotId?: string }) {
     setCaptured(REQUIRED_SHOTS); // Auto complete shots for demo preset
   };
 
-  const submit = () => {
+  const submit = async () => {
     setIsAnalyzing(true);
-    // Queue offline event
-    enqueue("scan", `วิเคราะห์ภาพแปลง ${plotId}`, {
-      plotId,
-      presetId: selectedPreset,
-      angles: captured,
-      capturedAt: new Date().toISOString(),
-    });
 
-    setTimeout(() => {
-      router.push(`/scan/result?plot=${plotId}&preset=${selectedPreset}`);
-    }, 600);
+    try {
+      if (customImagePreview) {
+        // Real AI Scan using captured image
+        const res = await fetch("/api/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            imageBase64: customImagePreview,
+            plotId 
+          })
+        });
+        const data = await res.json();
+        
+        // Save the result temporarily to local storage to pass to result page
+        localStorage.setItem("latestScanResult", JSON.stringify(data));
+        router.push(`/scan/result?plot=${plotId}&real=true`);
+
+      } else {
+        // Demo Mode
+        enqueue("scan", `วิเคราะห์ภาพแปลง ${plotId}`, {
+          plotId,
+          presetId: selectedPreset,
+          angles: captured,
+          capturedAt: new Date().toISOString(),
+        });
+
+        setTimeout(() => {
+          router.push(`/scan/result?plot=${plotId}&preset=${selectedPreset}`);
+        }, 600);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("เกิดข้อผิดพลาดในการวิเคราะห์ด้วย AI");
+      setIsAnalyzing(false);
+    }
   };
 
   return (

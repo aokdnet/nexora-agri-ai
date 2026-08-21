@@ -9,6 +9,7 @@ import { useAppStore } from "@/lib/store";
 import { confidencePct } from "@/lib/format";
 import { enqueue } from "@/lib/queue";
 import Link from "next/link";
+import { useEffect } from "react";
 
 const CONFIDENCE_GAIN_PER_ANSWER = 0.04;
 
@@ -19,22 +20,59 @@ export function ScanResultView() {
 
   const plotId = searchParams.get("plot") ?? "A-02";
   const presetId = searchParams.get("preset") ?? "cassava-mosaic";
+  const isReal = searchParams.get("real") === "true";
 
   const selectedPlot = plots.find((p) => p.id.toUpperCase() === plotId.toUpperCase()) || plots[0];
-  const preset = DISEASE_PRESETS.find((p) => p.id === presetId) || DISEASE_PRESETS[0];
-
+  
   const [step, setStep] = useState<"result" | "triage" | "actions">("result");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showBoundingBoxes, setShowBoundingBoxes] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  
+  const [realData, setRealData] = useState<any>(null);
+
+  useEffect(() => {
+    if (isReal) {
+      try {
+        const stored = localStorage.getItem("latestScanResult");
+        if (stored) setRealData(JSON.parse(stored));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [isReal]);
+
+  const preset = isReal && realData ? {
+    id: "real-ai-result",
+    thaiName: realData.disease_name,
+    scientificName: "วิเคราะห์โดย AI หมอพืช",
+    description: "ผลการวินิจฉัยจากภาพถ่ายจริงของคุณ",
+    affectedAreaPct: realData.disease_name === "สุขภาพดี" || realData.disease_name.includes("สมบูรณ์") ? 0 : 25,
+    confidence: (realData.confidence || 85) / 100,
+    sampleSvg: realData.disease_name === "สุขภาพดี" || realData.disease_name.includes("สมบูรณ์") ? "healthy" : "cassava",
+    actions: [
+      {
+        title: "คำแนะนำจาก AI",
+        detail: realData.recommendation || "โปรดปรึกษาผู้เชี่ยวชาญเพิ่มเติม",
+      }
+    ],
+    triage: [],
+    candidates: [
+      { label: realData.disease_name, probability: (realData.confidence || 85) / 100 }
+    ]
+  } : (DISEASE_PRESETS.find((p) => p.id === presetId) || DISEASE_PRESETS[0]);
 
   const answeredCount = Object.keys(answers).length;
   const currentConfidence = Math.min(
     0.98,
     preset.confidence + answeredCount * CONFIDENCE_GAIN_PER_ANSWER
   );
+
+  if (isReal && !realData) {
+    return <div style={{ padding: 24, textAlign: "center" }}>กำลังประมวลผลข้อมูล...</div>;
+  }
 
   const handleSaveToHistory = () => {
     saveScanResult({

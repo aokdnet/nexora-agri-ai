@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { BrandMark } from "@/components/BrandMark";
 import { Icon } from "@/components/Icon";
+import { supabase } from "@/lib/supabase";
 
 const VALUE_PROPS = [
   {
@@ -33,7 +35,42 @@ const VALUE_PROPS = [
 ];
 
 export function LandingClient() {
+  const router = useRouter();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleAuth = async (e: React.FormEvent, type: "login" | "signup") => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
+
+    try {
+      if (type === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        alert("สมัครสมาชิกสำเร็จ! (หากตั้งค่าให้ต้องยืนยันอีเมล กรุณาเช็คกล่องจดหมาย)");
+        router.push("/farmer");
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        router.push("/farmer");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -393,13 +430,45 @@ export function LandingClient() {
               <p style={{ color: "var(--muted)", fontSize: 14 }}>กรุณาเข้าสู่ระบบเพื่อเข้าจัดการฟาร์มของคุณ</p>
             </div>
 
-            {/* Mock Login Form */}
-            <input type="text" placeholder="เบอร์โทรศัพท์ หรือ อีเมล" className="login-input" />
-            <input type="password" placeholder="รหัสผ่าน" className="login-input" />
-            
-            <Link href="/farmer" className="login-btn" style={{ display: "block", textDecoration: "none" }}>
-              เข้าสู่ระบบ
-            </Link>
+            {errorMsg && (
+              <div style={{ background: "var(--warn-soft)", color: "var(--warn)", padding: "12px", borderRadius: 8, fontSize: 13, marginBottom: 16 }}>
+                {errorMsg}
+              </div>
+            )}
+
+            <form onSubmit={(e) => handleAuth(e, "login")}>
+              <input 
+                type="email" 
+                placeholder="อีเมล" 
+                className="login-input" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <input 
+                type="password" 
+                placeholder="รหัสผ่าน" 
+                className="login-input" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              
+              <div style={{ display: "flex", gap: 8 }}>
+                <button type="submit" className="login-btn" style={{ flex: 1 }} disabled={loading}>
+                  {loading ? "กำลังโหลด..." : "เข้าสู่ระบบ"}
+                </button>
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  style={{ flex: 1, justifyContent: "center" }}
+                  onClick={(e) => handleAuth(e, "signup")}
+                  disabled={loading}
+                >
+                  สมัครสมาชิก
+                </button>
+              </div>
+            </form>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "24px 0", color: "var(--muted)", fontSize: 13 }}>
               <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
