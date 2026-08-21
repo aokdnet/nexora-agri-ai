@@ -1,0 +1,52 @@
+{
+  "name": "NEXORA AGRI AI",
+  "short_name": "NEXORA AGRI",
+  "description": "ผู้ช่วยเกษตรกร ตั้งแต่ดินจนถึงตลาด",
+  "lang": "th",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#edf0ea",
+  "theme_color": "#26456f",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ถ่ายรูปให้ AI ดู",
+      "short_name": "ถ่ายรูป",
+      "url": "/scan",
+      "description": "เปิดกล้องเพื่อวิเคราะห์ใบพืชทันที"
+    },
+    {
+      "name": "แปลงของฉัน",
+      "short_name": "แปลง",
+      "url": "/plots"
+    },
+    {
+      "name": "กำไรต่อไร่",
+      "short_name": "เงิน",
+      "url": "/money"
+    }
+  ]
+}

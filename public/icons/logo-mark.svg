@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="NEXORA AGRI AI">
+  <!--
+    แนวคิด: ต้นกล้าข้าว 3 ใบแทงขึ้นจากคันดิน — สื่อ "ตั้งแต่ดิน" ในสโลแกน
+    ตั้งใจเลี่ยงไอคอน "ใบไม้เดี่ยวโค้งในกรอบมน" ที่เป็นค่าเริ่มต้นของงาน agri-tech ทั่วไป
+    เต็มพื้นที่ไม่มีขอบมนในตัว (full-bleed) เพื่อให้ใช้เป็น maskable icon ได้โดยไม่ถูกตัดขอบผิดสัดส่วน
+  -->
+  <rect width="512" height="512" fill="#26456F"/>
+  <g transform="translate(256 256) scale(0.72) translate(-256 -256)">
+    <path d="M128 440 Q256 402 384 440" fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" opacity="0.92"/>
+    <path d="M232 438 C150 400 90 300 108 190 C170 230 220 320 250 436 Z" fill="#FFFFFF" opacity="0.82"/>
+    <path d="M262 436 C300 360 360 270 408 206 C392 300 350 380 280 438 Z" fill="#FFFFFF" opacity="0.82"/>
+    <path d="M246 436 C210 340 214 180 300 96 C330 190 322 350 266 436 Z" fill="#FFFFFF"/>
+    <circle cx="300" cy="96" r="17" fill="#B4552F"/>
+  </g>
+</svg>
