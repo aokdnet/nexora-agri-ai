@@ -13,7 +13,7 @@
  * เมื่อแก้ไฟล์นี้ ให้เพิ่มเลข VERSION เสมอ มิฉะนั้นผู้ใช้จะติดอยู่กับเวอร์ชันเก่า
  */
 
-const VERSION = "v2";
+const VERSION = "v3";
 const SHELL_CACHE = `nexora-shell-${VERSION}`;
 const RUNTIME_CACHE = `nexora-runtime-${VERSION}`;
 
