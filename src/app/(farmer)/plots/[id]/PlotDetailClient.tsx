@@ -346,7 +346,6 @@ export function PlotDetailClient({ initialPlot }: { initialPlot: Plot }) {
               </div>
             </div>
           </div>
-          </div>
         )}
 
         <div style={{ marginTop: 32, paddingBottom: 32 }}>
