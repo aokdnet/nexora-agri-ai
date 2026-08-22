@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AdviceCard } from "@/components/AdviceCard";
 import { StatusChip, statusColor } from "@/components/Chip";
 import { Icon } from "@/components/Icon";
@@ -13,6 +14,7 @@ import type { Plot } from "@/lib/types";
 export function PlotDetailClient({ initialPlot }: { initialPlot: Plot }) {
   const { plots, irrigatePlot, fertilizePlot, deletePlot } = useAppStore();
   const plot = plots.find((p) => p.id.toUpperCase() === initialPlot.id.toUpperCase()) ?? initialPlot;
+  const router = useRouter();
 
   const [isIrrigateModalOpen, setIsIrrigateModalOpen] = useState(false);
   const [irrigateMinutes, setIrrigateMinutes] = useState(30);
@@ -344,7 +346,34 @@ export function PlotDetailClient({ initialPlot }: { initialPlot: Plot }) {
               </div>
             </div>
           </div>
+          </div>
         )}
+
+        <div style={{ marginTop: 32, paddingBottom: 32 }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm("คุณต้องการลบแปลงนี้ใช่หรือไม่?")) {
+                deletePlot(plot.id);
+                router.push("/plots");
+              }
+            }}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: 8,
+              border: "1px solid var(--crit)",
+              background: "transparent",
+              color: "var(--crit)",
+              fontWeight: 600,
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
+            <Icon name="alert" size={16} color="var(--crit)" style={{ marginRight: 6 }} />
+            ลบแปลงเพาะปลูกนี้
+          </button>
+        </div>
       </main>
     </>
   );
