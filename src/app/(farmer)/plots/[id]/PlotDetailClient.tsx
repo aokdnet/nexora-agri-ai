@@ -369,7 +369,9 @@ export function PlotDetailClient({ initialPlot }: { initialPlot: Plot }) {
               cursor: "pointer",
             }}
           >
-            <Icon name="alert" size={16} color="var(--crit)" style={{ marginRight: 6 }} />
+            <span style={{ marginRight: 6, display: "inline-flex" }}>
+              <Icon name="alert" size={16} color="var(--crit)" />
+            </span>
             ลบแปลงเพาะปลูกนี้
           </button>
         </div>
