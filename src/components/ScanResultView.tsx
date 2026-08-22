@@ -44,23 +44,32 @@ export function ScanResultView() {
     }
   }, [isReal]);
 
-  const preset = isReal && realData ? {
+  if (isReal && !realData) {
+    return <div style={{ padding: 24, textAlign: "center", color: "var(--ink)" }}>กำลังประมวลผลข้อมูล AI...</div>;
+  }
+
+  // Handle case where API returned an error object instead of the expected JSON structure
+  const hasApiError = isReal && realData && realData.error;
+  const diseaseName = hasApiError ? "ข้อผิดพลาดของระบบ" : (realData?.disease_name || "ไม่สามารถระบุได้");
+  const isHealthy = diseaseName === "สุขภาพดี" || diseaseName.includes("สมบูรณ์");
+
+  const preset = isReal ? {
     id: "real-ai-result",
-    thaiName: realData.disease_name,
-    scientificName: "วิเคราะห์โดย AI หมอพืช",
-    description: "ผลการวินิจฉัยจากภาพถ่ายจริงของคุณ",
-    affectedAreaPct: realData.disease_name === "สุขภาพดี" || realData.disease_name.includes("สมบูรณ์") ? 0 : 25,
-    confidence: (realData.confidence || 85) / 100,
-    sampleSvg: realData.disease_name === "สุขภาพดี" || realData.disease_name.includes("สมบูรณ์") ? "healthy" : "cassava",
+    thaiName: diseaseName,
+    scientificName: hasApiError ? "กรุณาลองใหม่อีกครั้ง" : "วิเคราะห์โดย AI หมอพืช",
+    description: hasApiError ? realData.error : "ผลการวินิจฉัยจากภาพถ่ายจริงของคุณ",
+    affectedAreaPct: isHealthy || hasApiError ? 0 : 25,
+    confidence: hasApiError ? 0 : ((realData?.confidence || 85) / 100),
+    sampleSvg: isHealthy ? "healthy" : "cassava",
     actions: [
       {
-        title: "คำแนะนำจาก AI",
-        detail: realData.recommendation || "โปรดปรึกษาผู้เชี่ยวชาญเพิ่มเติม",
+        title: hasApiError ? "คำแนะนำ" : "คำแนะนำจาก AI",
+        detail: hasApiError ? "ตรวจสอบการตั้งค่า API หรือลองถ่ายภาพใหม่อีกครั้ง" : (realData?.recommendation || "โปรดปรึกษาผู้เชี่ยวชาญเพิ่มเติม"),
       }
     ],
     triage: [],
     candidates: [
-      { label: realData.disease_name, probability: (realData.confidence || 85) / 100 }
+      { label: diseaseName, probability: hasApiError ? 0 : ((realData?.confidence || 85) / 100) }
     ]
   } : (DISEASE_PRESETS.find((p) => p.id === presetId) || DISEASE_PRESETS[0]);
 
@@ -69,10 +78,6 @@ export function ScanResultView() {
     0.98,
     preset.confidence + answeredCount * CONFIDENCE_GAIN_PER_ANSWER
   );
-
-  if (isReal && !realData) {
-    return <div style={{ padding: 24, textAlign: "center" }}>กำลังประมวลผลข้อมูล...</div>;
-  }
 
   const handleSaveToHistory = () => {
     saveScanResult({
