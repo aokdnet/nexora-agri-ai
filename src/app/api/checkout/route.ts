@@ -13,7 +13,7 @@ if (!isDemoMode) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { tierId, price, name } = await req.json();
+    const { tierId, price, name, userId } = await req.json();
 
     if (isDemoMode || !stripe) {
       // Demo Mode: Mock the checkout session by returning a fake URL
@@ -47,8 +47,10 @@ export async function POST(req: NextRequest) {
       mode: "payment", // Using 'payment' for one-time payment for MVP. Change to 'subscription' for recurring.
       success_url: `${origin}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${origin}/pricing?canceled=true`,
+      client_reference_id: userId,
       metadata: {
         tierId,
+        userId,
       }
     });
 

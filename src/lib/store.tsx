@@ -7,13 +7,14 @@ import {
   SEASON as INITIAL_SEASON,
   queryAiAgronomy,
 } from "./data";
-import type {
+import {
   Plot,
   DailyTask,
   ChatMessage,
   SubscriptionStatus,
   CostLine,
 } from "./types";
+import { supabase } from "./supabase";
 
 interface AppContextType {
   plots: Plot[];
@@ -93,11 +94,27 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
   const [iotMode, setIotMode] = useState<"normal" | "rain" | "drought">("normal");
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load initial data from localStorage on client mount
+  // Load initial data from localStorage and Supabase
   useEffect(() => {
-    try {
-      const storedPlots = localStorage.getItem(STORAGE_KEYS.PLOTS);
-      if (storedPlots) setPlots(JSON.parse(storedPlots));
+    async function loadData() {
+      try {
+        const storedPlots = localStorage.getItem(STORAGE_KEYS.PLOTS);
+        if (storedPlots) setPlots(JSON.parse(storedPlots));
+
+        // Fetch fresh plots from Supabase if logged in
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user) {
+          const { data: dbPlots, error } = await supabase
+            .from("plots")
+            .select("plot_data")
+            .eq("user_id", authData.user.id);
+            
+          if (!error && dbPlots && dbPlots.length > 0) {
+            const syncedPlots = dbPlots.map((row: any) => row.plot_data);
+            setPlots(syncedPlots);
+            localStorage.setItem(STORAGE_KEYS.PLOTS, JSON.stringify(syncedPlots));
+          }
+        }
 
       const storedTasks = localStorage.getItem(STORAGE_KEYS.TASKS);
       if (storedTasks) setTasks(JSON.parse(storedTasks));
@@ -128,11 +145,13 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
       const storedScans = localStorage.getItem(STORAGE_KEYS.SCANS);
       if (storedScans) setScanHistory(JSON.parse(storedScans));
-    } catch (e) {
-      console.error("Failed to load local storage state:", e);
-    } finally {
-      setIsLoaded(true);
+      } catch (e) {
+        console.error("Failed to load state:", e);
+      } finally {
+        setIsLoaded(true);
+      }
     }
+    loadData();
   }, []);
 
   // Save to localStorage when states change
@@ -220,17 +239,46 @@ export function AppStoreProvider({ children }: { children: React.ReactNode }) {
 
 
     setPlots((prev) => [newPlot, ...prev]);
+
+    // Sync to Supabase
+    supabase.auth.getUser().then(({ data: authData }) => {
+      if (authData?.user) {
+        supabase.from("plots").upsert({
+          id: newPlot.id,
+          user_id: authData.user.id,
+          name: `${newPlot.id} ${newPlot.crop}`,
+          crop_type: newPlot.crop,
+          area_size: newPlot.rai,
+          status: newPlot.status === "ok" ? "healthy" : newPlot.status === "warn" ? "warning" : "critical",
+          plot_data: newPlot,
+        }).then(({ error }) => {
+          if (error) console.error("Error syncing plot:", error);
+        });
+      }
+    });
+
     return newPlot;
   };
 
   const updatePlot = (id: string, updates: Partial<Plot>) => {
-    setPlots((prev) =>
-      prev.map((p) => (p.id.toUpperCase() === id.toUpperCase() ? { ...p, ...updates } : p))
-    );
+    setPlots((prev) => {
+      const newPlots = prev.map((p) => (p.id.toUpperCase() === id.toUpperCase() ? { ...p, ...updates } : p));
+      const updatedPlot = newPlots.find(p => p.id.toUpperCase() === id.toUpperCase());
+      
+      if (updatedPlot) {
+        supabase.auth.getUser().then(({ data: authData }) => {
+          if (authData?.user) {
+            supabase.from("plots").update({ plot_data: updatedPlot }).eq("id", id).then();
+          }
+        });
+      }
+      return newPlots;
+    });
   };
 
   const deletePlot = (id: string) => {
     setPlots((prev) => prev.filter((p) => p.id.toUpperCase() !== id.toUpperCase()));
+    supabase.from("plots").delete().eq("id", id).then();
   };
 
   const irrigatePlot = (id: string, minutes: number = 30) => {

@@ -3,7 +3,12 @@
 -- Copy and paste this into the Supabase SQL Editor and click "Run"
 -- ====================================================================
 
--- 1. Create Profiles table (Links to Supabase Auth)
+-- 1. Reset old tables
+DROP TABLE IF EXISTS public.scans CASCADE;
+DROP TABLE IF EXISTS public.plots CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+
+-- 2. Create Profiles table (Links to Supabase Auth)
 CREATE TABLE public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -15,21 +20,22 @@ CREATE TABLE public.profiles (
 
 -- 2. Create Plots table
 CREATE TABLE public.plots (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  id TEXT PRIMARY KEY, -- Changed to TEXT to support string IDs like "A-01" from frontend
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   name TEXT NOT NULL,
   crop_type TEXT NOT NULL,
   area_size NUMERIC, -- In Rai
   status TEXT DEFAULT 'healthy', -- 'healthy', 'warning', 'critical'
-  image_url TEXT
+  image_url TEXT,
+  plot_data JSONB -- Stores the full React Plot object for seamless frontend sync
 );
 
 -- 3. Create Scans table (History of AI Disease Detection)
 CREATE TABLE public.scans (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  plot_id UUID REFERENCES public.plots(id) ON DELETE CASCADE, -- Optional link to a specific plot
+  plot_id TEXT REFERENCES public.plots(id) ON DELETE CASCADE, -- Optional link to a specific plot
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   image_url TEXT NOT NULL,
   ai_result TEXT, -- The raw output from Gemini
