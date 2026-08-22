@@ -251,34 +251,44 @@ export default function PlotsPage() {
                   <label style={{ display: "block", fontSize: 12.5, fontWeight: 600, marginBottom: 4 }}>
                     ชนิดพืช
                   </label>
-                  <select
+                  <input
+                    list="crop-list"
                     value={newCrop}
                     onChange={(e) => {
-                      const c = e.target.value as CropKind;
+                      const c = e.target.value;
                       setNewCrop(c);
                       if (c === "ข้าว") setNewVariety("กข43");
                       else if (c === "มันสำปะหลัง") setNewVariety("ระยอง 72");
                       else if (c === "ทุเรียน") setNewVariety("หมอนทอง");
                       else if (c === "อ้อย") setNewVariety("ขอนแก่น 3");
                       else if (c === "ข้าวโพดหวาน") setNewVariety("ไฮบริกซ์ 3");
+                      else if (c === "มะนาว") setNewVariety("แป้นพิจิตร");
+                      else setNewVariety("");
                     }}
+                    placeholder="พิมพ์หรือเลือกชนิดพืช..."
+                    required
                     style={{
                       width: "100%",
-                      padding: "10px",
+                      padding: "8px 10px",
                       borderRadius: 8,
                       border: "1px solid var(--line)",
                       background: "var(--surface-2)",
                       color: "var(--ink)",
                     }}
-                  >
-                    <option value="ข้าว">ข้าว</option>
-                    <option value="มันสำปะหลัง">มันสำปะหลัง</option>
-                    <option value="ทุเรียน">ทุเรียน</option>
-                    <option value="อ้อย">อ้อย</option>
-                    <option value="ข้าวโพดหวาน">ข้าวโพดหวาน</option>
-                    <option value="ถั่วเขียว">ถั่วเขียว</option>
-                    <option value="ผักสวนครัว">ผักสวนครัว</option>
-                  </select>
+                  />
+                  <datalist id="crop-list">
+                    <option value="ข้าว" />
+                    <option value="มันสำปะหลัง" />
+                    <option value="ทุเรียน" />
+                    <option value="อ้อย" />
+                    <option value="ข้าวโพดหวาน" />
+                    <option value="ถั่วเขียว" />
+                    <option value="ผักสวนครัว" />
+                    <option value="มะนาว" />
+                    <option value="มะม่วง" />
+                    <option value="ยางพารา" />
+                    <option value="ปาล์มน้ำมัน" />
+                  </datalist>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>

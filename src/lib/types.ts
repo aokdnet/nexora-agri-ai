@@ -9,14 +9,7 @@
 
 export type PlotStatus = "ok" | "warn" | "crit";
 
-export type CropKind =
-  | "ข้าว"
-  | "มันสำปะหลัง"
-  | "ทุเรียน"
-  | "อ้อย"
-  | "ข้าวโพดหวาน"
-  | "ถั่วเขียว"
-  | "ผักสวนครัว";
+export type CropKind = string;
 
 export interface Plot {
   id: string;
